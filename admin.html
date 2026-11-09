@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RZIVA Admin Panel</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:20px;background:#101522;color:white;font-family:Arial}
+main{max-width:650px;margin:auto}
+h1{color:#d8b77a}
+.card{background:#1c2638;padding:20px;border-radius:12px;margin:18px 0}
+input,textarea{width:100%;padding:12px;margin:8px 0;border:0;border-radius:6px}
+button{padding:12px;background:#d8b77a;border:0;border-radius:6px;font-weight:bold;cursor:pointer;margin:5px 0}
+.product{padding:12px;border-bottom:1px solid #555}
+img{max-width:100px;display:block;margin:8px 0}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<main>
+<h1>RZIVA Admin</h1>
+<p>Beyond Ordinary.</p>
+
+<div class="card" id="login">
+<h2>Admin Login</h2>
+<input id="email" type="email" placeholder="Admin email">
+<input id="password" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="message"></p>
+</div>
+
+<div id="dashboard" class="hidden">
+<div class="card">
+<h2>Add Product</h2>
+<input id="name" placeholder="Product name">
+<textarea id="description" placeholder="Description"></textarea>
+<input id="price" type="number" placeholder="Price">
+<input id="discount" type="number" placeholder="Discount price (optional)">
+<input id="stock" type="number" placeholder="Stock quantity">
+<input id="photo" type="file" accept="image/jpeg">
+<button onclick="addProduct()">Add Product</button>
+<p id="result"></p>
+</div>
+
+<div class="card">
+<h2>Products</h2>
+<div id="products">Loading...</div>
+</div>
+
+<button onclick="logout()">Logout</button>
+</div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://txuzfacivubngiartnls.supabase.co/rest/v1/";
+const SUPABASE_KEY = "sb_publishable_ARZIA1wM3ItBo3ulg_eE7w_rwZ4wHR7";
+
+const db = window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+
+async function login(){
+ const {error}=await db.auth.signInWithPassword({
+  email:document.getElementById('email').value,
+  password:document.getElementById('password').value
+ });
+ if(error){document.getElementById('message').textContent=error.message;return;}
+ await checkAdmin();
+}
+
+async function checkAdmin(){
+ const {data:{user}}=await db.auth.getUser();
+ if(!user)return;
+ const {data,error}=await db.from('profiles')
+  .select('is_admin').eq('id',user.id).single();
+ if(error || !data || !data.is_admin){
+  document.getElementById('message').textContent="Admin access denied";
+  await db.auth.signOut();
+  return;
+ }
+ document.getElementById('login').classList.add('hidden');
+ document.getElementById('dashboard').classList.remove('hidden');
+ loadProducts();
+}
+
+async function addProduct(){
+ const name=document.getElementById('name').value.trim();
+ const price=Number(document.getElementById('price').value);
+ const stock=Number(document.getElementById('stock').value);
+ const file=document.getElementById('photo').files[0];
+ if(!name || !Number.isFinite(price) || price<0 || !Number.isInteger(stock) || stock<0){
+  alert("Enter valid product details");return;
+ }
+ let image_url=null;
+ if(file){
+  if(file.size>5*1024*1024){alert("Image must be under 5 MB");return;}
+  const path=crypto.randomUUID()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const {error:uploadError}=await db.storage.from('product-images').upload(path,file);
+  if(uploadError){alert(uploadError.message);return;}
+  image_url=db.storage.from('product-images').getPublicUrl(path).data.publicUrl;
+ }
+ const discount=document.getElementById('discount').value;
+ const {error}=await db.from('products').insert({
+  name,
+  description:document.getElementById('description').value,
+  price,
+  discount_price:discount===""?null:Number(discount),
+  stock,
+  image_url
+ });
+ if(error){alert(error.message);return;}
+ document.getElementById('result').textContent="Product added!";
+ loadProducts();
+}
+
+async function loadProducts(){
+ const {data,error}=await db.from('products')
+  .select('*').order('created_at',{ascending:false});
+ const area=document.getElementById('products');
+ if(error){area.textContent=error.message;return;}
+ area.innerHTML="";
+ data.forEach(p=>{
+  const item=document.createElement('div');
+  item.className='product';
+  const title=document.createElement('b');
+  title.textContent=p.name;
+  item.appendChild(title);
+  if(p.image_url){
+   const img=document.createElement('img');
+   img.src=p.image_url;
+   img.alt=p.name;
+   item.appendChild(img);
+  }
+  const details=document.createElement('p');
+  details.textContent="₹"+p.price+" | Stock: "+p.stock;
+  item.appendChild(details);
+  const del=document.createElement('button');
+  del.textContent="Delete";
+  del.onclick=()=>deleteProduct(p.id);
+  item.appendChild(del);
+  area.appendChild(item);
+ });
+}
+
+async function deleteProduct(id){
+ if(!confirm("Delete this product?"))return;
+ const {error}=await db.from('products').delete().eq('id',id);
+ if(error){alert(error.message);return;}
+ loadProducts();
+}
+
+async function logout(){
+ await db.auth.signOut();
+ location.reload();
+}
+
+db.auth.onAuthStateChange((event,session)=>{
+ if(session) setTimeout(checkAdmin,0);
+});
+</script>
+</body>
+</html>
