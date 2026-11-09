@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RZIVA | Beyond Ordinary</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#101522;color:#fff}
+header{padding:20px 6%;display:flex;justify-content:space-between;align-items:center;background:#171e2d}
+.logo{font-size:27px;font-weight:800;letter-spacing:4px;color:#d8b77a}
+header span{font-size:13px;color:#ddd}
+.hero{padding:65px 7%;background:linear-gradient(120deg,#242c3e,#51412f);text-align:center}
+.hero h1{font-size:42px;margin-bottom:12px}
+.hero p{color:#e6d4b5;letter-spacing:2px}
+.hero a{display:inline-block;margin-top:25px;padding:13px 28px;background:#d8b77a;color:#171717;text-decoration:none;border-radius:5px;font-weight:bold}
+section{padding:35px 6%}
+h2{margin-bottom:20px}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px}
+.product{background:#1c2638;border-radius:12px;padding:15px}
+.product-image{height:190px;border-radius:8px;background:linear-gradient(135deg,#c5a779,#51412f);display:grid;place-items:center;color:#fff;font-size:18px}
+.product h3{margin:15px 0 8px}
+.price{color:#e5c58e;font-size:20px;font-weight:bold}
+button{border:0;background:#d8b77a;color:#171717;padding:12px 18px;border-radius:5px;font-weight:bold;margin-top:14px;cursor:pointer;width:100%}
+.offer{background:#242c3e;text-align:center;padding:28px;margin:20px 6%;border-radius:10px}
+footer{text-align:center;padding:25px;color:#aaa;background:#171e2d}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">RZIVA</div>
+  <span>BEYOND ORDINARY</span>
+</header>
+
+<div class="hero">
+  <h1>Beyond Ordinary.</h1>
+  <p>MAKE IT PERSONAL. MAKE IT YOURS.</p>
+  <a href="#products">SHOP NOW</a>
+</div>
+
+<section id="products">
+  <h2>Featured Products</h2>
+  <div class="products">
+    <div class="product">
+      <div class="product-image">RZIVA KEYCHAIN</div>
+      <h3>Personalized Resin Keychain</h3>
+      <p>Make your style unique with a personalized keychain.</p>
+      <p class="price">₹149 / piece</p>
+      <button onclick="order()">ORDER ON WHATSAPP</button>
+    </div>
+  </div>
+</section>
+
+<div class="offer">
+  <h2>Special Combo Offer</h2>
+  <p>2 Keychains for ₹100</p>
+  <p>Minimum order value ₹100</p>
+</div>
+
+<footer>
+  <p>RZIVA © 2026 | Beyond Ordinary</p>
+  <p>Contact us on WhatsApp for orders</p>
+</footer>
+
+<script>
+function order(){
+  const message = encodeURIComponent("Hello RZIVA! I want to order personalized resin keychains.");
+  window.open("https://wa.me/919836867445?text="+message,"_blank");
+}
+</script>
+</body>
+</html>
